@@ -34,5 +34,14 @@ public class SearchPage extends ForumPageObject {
 
         return new SearchPage();
     }
+    public List<String> getSearchTopicList ()
+    {
+        List<String> result = new ArrayList<>();
+        List<WebElement> list = this.driver().findElements(By.xpath("//div[@class='topic_details floatleft']//h5/a[2]"));
+        for (WebElement elem: list) {
+            result.add(elem.getText());
+        }
+        return result;
+    }
 
 }

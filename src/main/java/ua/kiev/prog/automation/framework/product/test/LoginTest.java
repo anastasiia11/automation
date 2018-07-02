@@ -53,7 +53,8 @@ public class LoginTest extends Test
         MainPageLoggedIn dashboard = loginPage.login("Anastasia1234", "sannacode");
         // Подтверждаем что вход осуществлен
         this.assertSuccess(dashboard, "Login");
-        // Выводим в консоль имя пользователя на форуме
+
+       /** // Выводим в консоль имя пользователя на форуме
         System.out.println("Name: " + dashboard.getUsername());
 
         // TODO домашнее задание
@@ -64,20 +65,25 @@ public class LoginTest extends Test
             System.out.println("Author: " + author);
                     }
         System.out.println();
+        */
         TopLinksBlock menu = dashboard.topLinks();
-
+/**
         //Переход на экран Начало
         menu.getSource();
 
         //Переход на экран Помощь. Вывод 1-го параграфа текста помощи в консоль
         HelpPage goToHelp = menu.getHelp();
         goToHelp.getHelpText();
-
+*/
         //Переход на экран Поиска. Поиск по ключевым словам
         SearchPage goToSearch = menu.getSearch();
-        goToSearch.search("QA Automation");
-
-        //Переход на экран Профиль. Отображение статистики Профиля
+        goToSearch.search("Automation");
+        List<String> searchTopics = goToSearch.getSearchTopicList();
+        for (String searchTopic : searchTopics) {
+            System.out.println("Automation Topic: " +  searchTopic);
+        }
+        System.out.println();
+/**        //Переход на экран Профиль. Отображение статистики Профиля
         ProfilePage goToProfile = menu.getProfile();
         goToProfile.showStatistic();
 
@@ -100,7 +106,7 @@ public class LoginTest extends Test
 
        //Клик по кнопке Выход
         menu.getLogout();
-
+*/
         // Ждём 10 сек, с перехватом исключения на прерывание выполнения потока и игнорируем его
         try {
             Thread.sleep(10000);
