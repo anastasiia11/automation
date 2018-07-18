@@ -18,7 +18,7 @@ import java.util.Map;
 public class Forum extends Component
 {
     @Override
-    protected String name()
+    public String name()
     {
         return "Forum"; // Имя для отображения
     }

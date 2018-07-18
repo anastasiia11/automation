@@ -1,12 +1,18 @@
 package ua.kiev.prog.automation.framework.core.product.component.object;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import ua.kiev.prog.automation.framework.core.ResultLog;
+import ua.kiev.prog.automation.framework.core.TestResultType;
 import ua.kiev.prog.automation.framework.core.product.Component;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -20,10 +26,22 @@ import java.util.List;
  */
 abstract public class PageObject<T extends PageObject>
 {
+    static private PageObject _lastObject;
+
+    static public PageObject getLastObject ()
+    {
+        return _lastObject;
+    }
+
     /**
      * Компонент объекта страницы
      */
     private Component _component;
+
+/*    protected PageObject ()
+    {
+        this(true);
+    }*/
 
     /**
      * Конструктор объекта
@@ -39,12 +57,17 @@ abstract public class PageObject<T extends PageObject>
         // Получаем объект-одиночку(Singleton) из списка, в статических свойствах класса Component по имени класса
         this._component = Component.getSingleton(componentClass);
 
-        // Денлаем искуственную задержку на 1 сек для наглядности
+/*        // Денлаем искуственную задержку на 1 сек для наглядности
         try {
             Thread.sleep(1000);
-        } catch (Exception e) { /* Ignore */ }
-        // Ждем подтверждения загрузки страниці
+        } catch (Exception e) { *//* Ignore *//* }*/
+        // Ждем подтверждения загрузки страницы
+        /*if (checkReadyLocator)
+           */
+        // Пишем в лог статус страницы
         this.waitReadyLocator();
+        ResultLog.getInstance().writePageObject(this);
+        _lastObject = this;
     }
 
     /**
@@ -52,7 +75,7 @@ abstract public class PageObject<T extends PageObject>
      *
      * @return Component - page component
      */
-    protected Component component()
+    public Component component()
     {
         return this._component;
     }
@@ -88,6 +111,18 @@ abstract public class PageObject<T extends PageObject>
         } catch (Exception e) { /* Ignore */ }
     }
 
+    final protected void assertLoaded ()
+    {
+        this.waitReadyLocator();
+        if (!this.success())
+            throw new RuntimeException("Page is not loaded");
+    }
+
+    final protected void logStep (String name)
+    {
+        ResultLog.getInstance().writeStep(name);
+    }
+
     /**
      * Этот метод возвращает статус удачной загрузки страницы
      *
@@ -104,9 +139,24 @@ abstract public class PageObject<T extends PageObject>
         return result;
     }
 
-    public RemoteWebDriver driver ()
+    final public TestResultType getResult ()
+    {
+        return this.success() ? TestResultType.SUCCESS : TestResultType.FAILED;
+    }
+
+    final public void takeScreenshot ()
+    {
+        File scrFile = this.component().session().driver().getScreenshotAs(OutputType.FILE);
+        try {
+            String filename = "./screenshot_"+ Math.random() + ".png";
+            FileUtils.copyFile(scrFile, new File(filename));
+            ResultLog.getInstance().writeScreenshot(filename);
+        } catch (IOException e) {
+            ResultLog.getInstance().writeException(e);
+        }
+    }
+    final public RemoteWebDriver driver()
     {
         return this.component().session().driver();
     }
-
 }

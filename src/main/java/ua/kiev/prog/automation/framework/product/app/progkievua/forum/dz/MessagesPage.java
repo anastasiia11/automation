@@ -18,6 +18,7 @@ public class MessagesPage extends ForumPageObject {
     protected By readyLocator() {
         return By.xpath("//div[@id = 'main_content_section']");
     }
+
     final public String getMessagesText ()
 
     {

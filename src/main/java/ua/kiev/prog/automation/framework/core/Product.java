@@ -1,9 +1,12 @@
 package ua.kiev.prog.automation.framework.core;
 
 import ua.kiev.prog.automation.framework.core.product.Component;
+import ua.kiev.prog.automation.framework.core.product.component.object.PageObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * ////////////////////////////////////////////////////////// *
@@ -14,7 +17,8 @@ import java.util.List;
  * Email: yurii.voronenko@gmail.com                           *
  * ////////////////////////////////////////////////////////// *
  */
-abstract public class Product
+abstract public class
+Product
 {
     /**
      * Список объектов тестов, для данного продукта
@@ -39,6 +43,9 @@ abstract public class Product
                 // Т.е. исключение не должно возникнуть
             }
         }
+
+        // Write to log
+        ResultLog.getInstance().writeProduct(this);
     }
 
     /**
@@ -46,20 +53,57 @@ abstract public class Product
      */
     final public void runTests ()
     {
+        ResultLog log = ResultLog.getInstance();
+
         for (Test test: this._tests) {
-            Component.resetAll();
+            log.runTest(test);
             try {
+                log.writeTestPhase("BEFORE");
                 test.beforeTest();
-                // TODO cycling run with data
-                test.test();
+
+                log.writeTestPhase("TEST");
+                List<Map<String, String>> testCases = new ArrayList<>();
+                test.data(testCases);
+                int i = 0;
+                for (Map<String, String> testCase : testCases) {
+                    Component.resetAll();
+                    i ++;
+                    log.writeTestPhase("TEST CASE #" + i);
+                    log.writeTestCaseData(testCase);
+                    try {
+                        test.test(testCase);
+                    } catch (Exception e) {
+                        this.handleException(e);
+                    }
+
+                }
+            } catch (Exception e) {
+                this.handleException(e);
+            }
+            try {
+                log.writeTestPhase("AFTER");
                 test.afterTest();
             } catch (Exception e) {
-                // TODO log exception
-                e.printStackTrace(System.out);
+                this.handleException(e);
             }
+            log.endTest(test);
+
         }
+
         // Close all components
         Component.closeAll();
+
+        // Close result log
+        log.close();
+    }
+
+    public void handleException (Exception e)
+    {
+        PageObject obj = PageObject.getLastObject();
+        if (obj != null)
+            obj.takeScreenshot();
+        e.printStackTrace(System.out);
+        ResultLog.getInstance().writeException(e);
     }
 
     /**

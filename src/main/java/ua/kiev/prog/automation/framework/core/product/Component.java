@@ -1,5 +1,6 @@
 package ua.kiev.prog.automation.framework.core.product;
 
+import ua.kiev.prog.automation.framework.core.ResultLog;
 import ua.kiev.prog.automation.framework.core.product.component.driver.Session;
 
 import java.util.HashMap;
@@ -53,15 +54,17 @@ abstract public class Component
                 _components.put(componentClass, object);
             } catch (Exception e) {
                 /*
-                * Игнорируем любые исключения, т.к. мы определили типом аргумента,
-                * что любой класс на входе будет наследоватся от этого класса и использовать этот конструктор
-                */
+                 * Игнорируем любые исключения, т.к. мы определили типом аргумента,
+                 * что любой класс на входе будет наследоватся от этого класса и использовать этот конструктор
+                 */
             }
         }
         // Указываем, через инструкцию (T) - (Называется casting), что объект будет приведён к типу T
         // Вызов метода  _components.get(componentClass) - На выходе вернёт тип Component, но мы то знаем
         // что создавали именно объект T(подкласс Component), т.к. на входе получили этот тип через дженерик T
-        return (T)_components.get(componentClass);
+        T component = (T)_components.get(componentClass);
+        ResultLog.getInstance().switchComponent(component);
+        return component;
         // Дополнительную инфу можете поискать по ключевым словам:
         // Java generic (Java дженерики)
         // Java generic methods (Java универсальные методы)
@@ -73,6 +76,7 @@ abstract public class Component
      */
     static public void resetAll ()
     {
+
         // Дословно:
         // Для каждой пары(Map.Entry) с типом в <> (класс, объект), в переменной "с" из списка пар в _components
         for (Map.Entry<Class<? extends Component>, Component> c: _components.entrySet()) {
@@ -125,7 +129,13 @@ abstract public class Component
     final public void setURL (String url)
     {
         this._url = url;
+        ResultLog.getInstance().setComponentURL(this, url);
         this.reset();
+    }
+
+    final public String getURL ()
+    {
+        return this._url;
     }
 
     /**
@@ -143,6 +153,7 @@ abstract public class Component
      */
     final public void reset ()
     {
+        this._session.close();
         if (this._url != null)
             this._session.driver().get(this._url);
     }
@@ -161,5 +172,5 @@ abstract public class Component
      *
      * @return String - Имя компонента
      */
-    abstract protected String name();
+    abstract public String name();
 }
